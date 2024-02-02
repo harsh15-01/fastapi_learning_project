@@ -37,6 +37,14 @@ def process_user_data(user_create: CreateUserRequest):
     return processed_user_data
 
 
+def update_user_data(user_data: UpdateBrandSettings):
+    updated_user_data = {
+        "name": user_data.name,
+        "url": user_data.url,
+        "bucket": user_data.bucket
+    }
+
+
 def response(Data):
     return {
         "success": True,
@@ -114,28 +122,40 @@ def update_status(user_ids: str = Cookie(), statuses: str = Cookie(), db: Sessio
         return JSONResponse(status_code=400, content={"message": "something went wrong!"})
 
 
-@router.post('/user_id')
-def new_entry(data: UpdateBrandSettings, loggedIn_id: int = Cookie(), db: Session = Depends(get_db)):
+@router.post('/loggedIn_id')
+def new_entry(data: dict = Depends(update_user_data), loggedIn_id: int = Cookie(), db: Session = Depends(get_db)):
     print(loggedIn_id)
     print("<<<<<<<<<<<<<<")
     try:
-        query = db.query(User, BrandSettings).filter(User.id == loggedIn_id, BrandSettings.inactive_settings == 0)\
-        .join(Account, User.account_id == Account.id)\
-        .join(Brand, Account.brandName == Brand.id)\
-        .join(BrandSettings, Brand.id == BrandSettings.brand_id).first()
+        query = db.query(User, BrandSettings).filter(User.id == loggedIn_id, BrandSettings.inactive_settings == 0) \
+            .join(Account, User.account_id == Account.id) \
+            .join(Brand, Account.brandName == Brand.id) \
+            .join(BrandSettings, Brand.id == BrandSettings.brand_id).first()
 
-        query_update = db.query(BrandSettings).filter(BrandSettings.id == query.BrandSettings.brand_id)\
+        print(query.User.id,"<<<<<<<<<<<<<<",query.BrandSettings.inactive_settings)
+
+        db.query(BrandSettings).filter(BrandSettings.id == query.BrandSettings.brand_id) \
             .update({"inactive_settings": 1})
-        print("<<<<<", query.User.id)
-
-        new = BrandSettings()
-        new.name = data.name
-        new.url = data.url
-        new.bucket = data.bucket
-        db.add(new)
         db.commit()
-        db.refresh(new)
 
-        print("<<<<<<<<<<<", new.name, new.url, new.bucket)
+        # Fetch the updated record
+        updated_brand_settings = db.query(BrandSettings).filter(BrandSettings.id == query.BrandSettings.brand_id).first()
+
+        # Print the updated value
+        print("Updated inactive_settings:", updated_brand_settings.inactive_settings)
+
+        # new_brandSetting_data = get_modified_data(query_results.BrandSettings, bsModel)
+        # new_data = BrandSettings(**new_brandSetting_data)
+        # db.add(new_data)
+        # db.commit()
+        # db.refresh(new_data)
+        # new = BrandSettings()
+        # new.name = data["name"]
+        # new.url = data["url"]
+        # new.bucket = data["bucket"]
+        # db.add(new)
+        # db.commit()
+        # db.refresh(new)
+        # print("<<<<<<<<<<<", new.name, new.url, new.bucket)
     except:
         return JSONResponse(status_code=400, content={"message": "something went wrong!"})
