@@ -79,7 +79,6 @@ class User(Base):
     passwordchanged_time = Column(TIMESTAMP)
     otp = Column(String(255))
     thumbnail = Column(String(255))
-    thumbnail = Column(String(255))
     jwt_access_token = Column(String(255))
     jwt_refresh_token = Column(String(255))
     previous_password = Column(Text)
@@ -122,3 +121,22 @@ class Story(Base):
     updated_time = Column(DateTime, nullable=True)
     brand_id = Column(Integer, ForeignKey('brand.id'), nullable=True)
     account_id = Column(Integer, ForeignKey('account.id'), nullable=True)
+
+
+class BrandTelephonySetting(Base):
+    __tablename__ = 'brand_telephony_settings'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    brand_id = Column(Integer, ForeignKey('brand.id'), nullable=False)
+    ivr_number = Column(String(255), nullable=False, comment='Twilio number exposed to end user')
+    type = Column(Integer, nullable=False, default=1, comment='1 = creating recording, 2 = Listening to recording')
+    inactive = Column(Boolean, default=False)
+    created_time = Column(DateTime(timezone=True), default=func.now())
+
+class Language(Base):
+    __tablename__ = 'language'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(45))
+    code = Column(String(45))
+    inactive = Column(Boolean, default=False)

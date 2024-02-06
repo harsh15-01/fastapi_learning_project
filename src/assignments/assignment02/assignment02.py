@@ -75,6 +75,8 @@ def create_user(data: dict = Depends(process_user_data), db: Session = Depends(g
             "brand_name": query.brand_name,
             "account_id": query.account_id,
         }
+        # print("<<<<<<<<<<<<")
+        # print(query_dict.user_id, query_dict.brand_id, query_dict.brand_name)
         return JSONResponse(status_code=200, content={"message": "User created successfully", "data": query_dict})
     except Exception as e:
         return JSONResponse(status_code=400, content={"something went wrong!"})
