@@ -27,8 +27,11 @@ def get_user_data(request: Request, db: Session = Depends(get_db)):
         if result is not None:
             b_id = result.BrandSettings.brand_id
             settings_json = json.loads(result.BrandSettings.settings_json)
-            multilingual_support = settings_json.get("multilingual_support")
-            preferred_language = settings_json.get("preferred_language")
+            if settings_json is not None:
+                multilingual_support = settings_json.get("multilingual_support")
+                preferred_language = settings_json.get("preferred_language")
+            else:
+                return getResposne(data="Settings JSON not found for the specified user and account",status_code=status.HTTP_404_NOT_FOUND)
             query = db.query(Language).filter(Language.code == preferred_language).first()
             return JSONResponse(content={"status_code":status.HTTP_200_OK,"Brand ID": b_id, "Multilingual Support:": multilingual_support,
                                          "Preferred Language:": query.name})
@@ -70,11 +73,9 @@ async def update_record(user_update: UserUpdate, request: Request, db: Session =
         user = db.query(User).filter(User.id == user_id).first()
         admin_user = db.query(User).filter(User.id == admin_user_id).first()
         if user is None:
-            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                                content={"data": f"User with id {user_id} not found."})
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,content={"data": f"User with id {user_id} not found."})
         if admin_user is None:
-            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                                content={"data": f"Admin user with id {admin_user_id} not found."})
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,content={"data": f"Admin user with id {admin_user_id} not found."})
         for field, value in user_update.dict().items():
             if field != "id":
                 setattr(user_update, field, value)
