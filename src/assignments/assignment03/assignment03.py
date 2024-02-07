@@ -78,7 +78,7 @@ async def update_record(user_update: UserUpdate, request: Request, db: Session =
             return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,content={"data": f"Admin user with id {admin_user_id} not found."})
         for field, value in user_update.dict().items():
             if field != "id":
-                setattr(user_update, field, value)
+                setattr(user, field, value)
         db.commit()
         return JSONResponse(content={"status_code":status.HTTP_200_OK, "data": "User updated successfully"})
     except Exception as e:
